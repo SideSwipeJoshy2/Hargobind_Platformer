@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,93 +8,187 @@ public class PlayerController : MonoBehaviour
     {
         left, right
     }
-    public float timeToReachMaxSpeed;
-    public float speed;
-    public float timeToDeaccel;
+    public FacingDirection currentFacingDirection = FacingDirection.right;
+
+    public enum CharacterState
+    {
+        idle, walk, jump, die
+    }
+    public CharacterState currentCharacterState = CharacterState.idle;
+    public CharacterState previousCharacterState = CharacterState.idle;
 
 
-    private float accel;
-    private float deaccel;
+    public float accelerationTime;
+    public float decelerationTime;
+    public float maxSpeed;
+    public float ApexHeight;
+    public float ApexTime;
+    private float jumpTime;
+    public float terminalSpeed = 3;
+    public float magnitudeCap = 3f;
 
-    public FacingDirection direction;
-    private Rigidbody2D rb;
+    public int health = 10;
+
+    private Rigidbody2D playerRB;
+    private float acceleration;
+    private bool isJumping = false;
+
+
     // Start is called before the first frame update
     void Start()
     {
-        accel = speed / timeToReachMaxSpeed;
-        deaccel = speed / timeToDeaccel;
-        rb = GetComponent<Rigidbody2D>();
+        playerRB = GetComponent<Rigidbody2D>();
+        acceleration = maxSpeed / accelerationTime;
+        jumpTime = ApexHeight / ApexTime;
+
     }
 
     // Update is called once per frame
     void Update()
     {
+
+        previousCharacterState = currentCharacterState;
+
+        if (IsGrounded() && Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            isJumping = true;
+        }
+
+
+        switch (currentCharacterState)
+        {
+            case CharacterState.die:
+
+                break;
+            case CharacterState.jump:
+
+                if (IsGrounded())
+                {
+                    //We know we need to make a transition because we're not grounded anymore
+                    if (IsWalking())
+                    {
+                        currentCharacterState = CharacterState.walk;
+                    }
+                    else
+                    {
+                        currentCharacterState = CharacterState.idle;
+                    }
+                }
+
+                break;
+            case CharacterState.walk:
+                if (!IsWalking())
+                {
+                    currentCharacterState = CharacterState.idle;
+                }
+                //Are we jumping?
+                if (!IsGrounded())
+                {
+                    currentCharacterState = CharacterState.jump;
+                }
+                break;
+            case CharacterState.idle:
+                //Are we walking?
+                if (IsWalking())
+                {
+                    currentCharacterState = CharacterState.walk;
+                }
+                //Are we jumping?
+                if (!IsGrounded())
+                {
+                    currentCharacterState = CharacterState.jump;
+                }
+
+                break;
+        }
+
+    }
+
+    private void FixedUpdate()
+    {
         //The input from the player needs to be determined and then passed in the to the MovementUpdate which should
         //manage the actual movement of the character.
         Vector2 playerInput = new Vector2();
+        if (Input.GetKey(KeyCode.LeftArrow))
+        {
+            playerInput += Vector2.left;
+        }
+        if (Input.GetKey(KeyCode.RightArrow))
+        {
+            playerInput += Vector2.right;
+        }
+        if (isJumping)
+        {
+
+            playerRB.AddForce(jumpTime * Vector2.up, ForceMode2D.Impulse);
+            Vector2 velocityH = playerRB.velocity;
+
+                velocityH += playerInput * jumpTime;
+            
+            playerRB.velocity = velocityH;
+            //Trigger our jump logic
+            Debug.Log("Player is jumping woohoo!!");
+            isJumping = false;
+        }
+
+        if(playerRB.velocity.y < magnitudeCap)
+{
+            playerRB.velocity = new Vector2(playerRB.velocity.x, magnitudeCap);
+        }
         MovementUpdate(playerInput);
-        GetFacingDirection();
     }
+
+
 
     private void MovementUpdate(Vector2 playerInput)
     {
-        Vector2 currentVelo = rb.velocity;
-
-        if (Input.GetKey(KeyCode.RightArrow))
+        Vector2 velocity = playerRB.velocity;
+        Debug.Log(playerInput.ToString());
+        if (playerInput.x != 0)
         {
-            currentVelo += accel * Vector2.right * Time.deltaTime;
-        }
-
-        if (Input.GetKey(KeyCode.LeftArrow))
-        {
-            currentVelo += accel * Vector2.left * Time.deltaTime;
-        }
-
-        if (Input.GetKey(KeyCode.UpArrow))
-        {
-            currentVelo += accel * Vector2.up * Time.deltaTime;
-        }
-
-        if (Input.GetKey(KeyCode.DownArrow))
-        {
-            currentVelo += accel * Vector2.down * Time.deltaTime;
-        }
-
-        rb.velocity = currentVelo;
-
-    }
-
-        public bool IsWalking()
-    {
-        if (speed > 0)
-        {
-          return true;
+            velocity += playerInput * acceleration * Time.fixedDeltaTime;
         }
         else
         {
-     return false;
-     }
+            velocity = new Vector2(0, velocity.y);
+        }
+
+        playerRB.velocity = velocity;
+    }
+
+    public bool IsWalking()
+    {
+        return false;
     }
     public bool IsGrounded()
     {
         return true;
     }
 
-    public FacingDirection GetFacingDirection()
+    public bool IsDead()
     {
-
-
-        if(direction == FacingDirection.left)
-        {
-            return FacingDirection.left;
-        }
-        else if(direction == FacingDirection.right)
-        {
-            return FacingDirection.right;
-          
-        }
-        return direction;
+        return health <= 0;
     }
 
+    public void OnDeathAnimationComplete()
+    {
 
+    }
+    public FacingDirection GetFacingDirection()
+    {
+        if (playerRB.velocity.x > 0)
+        {
+            currentFacingDirection = FacingDirection.right;
+        }
+        else if (playerRB.velocity.x < 0)
+        {
+            currentFacingDirection = FacingDirection.left;
+        }
+
+        return currentFacingDirection;
+    }
 }
+
+
+
+
