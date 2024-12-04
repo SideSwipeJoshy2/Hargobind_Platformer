@@ -214,6 +214,59 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &597315762
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 597315763}
+  - component: {fileID: 597315764}
+  m_Layer: 0
+  m_Name: wallCheck
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &597315763
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 597315762}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.18, y: -0.01, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1433354315}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &597315764
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 597315762}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2, y: 0.5, z: 1}
+  m_Center: {x: -0.19580221, y: -0.07301104, z: 0}
 --- !u!1 &874392357
 GameObject:
   m_ObjectHideFlags: 0
@@ -312,7 +365,7 @@ GameObject:
   - component: {fileID: 1054579206}
   - component: {fileID: 1054579210}
   - component: {fileID: 1054579209}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: GroundTilemap
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1541,7 +1594,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1419490948}
   - component: {fileID: 1419490947}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Grid
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1632,6 +1685,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86a1ce42ea3e3dd44868493ae73ec06d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  direction: 2
   currentFacingDirection: 1
   currentCharacterState: 0
   previousCharacterState: 0
@@ -1640,7 +1694,15 @@ MonoBehaviour:
   maxSpeed: 5
   ApexHeight: 3
   ApexTime: 0.5
+  terminalSpeed: 3
+  magnitudeCap: 3
+  dashSpeed: 7
   health: 10
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  wallCheck: {fileID: 597315763}
+  wallSpeed: 0.5
 --- !u!4 &1433354315
 Transform:
   m_ObjectHideFlags: 0
@@ -1655,6 +1717,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1598075210}
+  - {fileID: 597315763}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1433354316
@@ -1839,7 +1902,7 @@ GameObject:
   - component: {fileID: 2077868378}
   - component: {fileID: 2077868380}
   - component: {fileID: 2077868379}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: SkyTilemap
   m_TagString: Untagged
   m_Icon: {fileID: 0}

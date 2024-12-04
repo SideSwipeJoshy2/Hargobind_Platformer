@@ -1,9 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
+using static PlayerController;
 
 public class PlayerController : MonoBehaviour
 {
+
+
+    public enum DashDirection
+    {
+        left, right, none
+            }
+    float timer;
+    float dashDura;
+    public DashDirection direction;
+
+
     public enum FacingDirection
     {
         left, right
@@ -17,6 +30,8 @@ public class PlayerController : MonoBehaviour
     public CharacterState currentCharacterState = CharacterState.idle;
     public CharacterState previousCharacterState = CharacterState.idle;
 
+ 
+
 
     public float accelerationTime;
     public float decelerationTime;
@@ -26,13 +41,22 @@ public class PlayerController : MonoBehaviour
     private float jumpTime;
     public float terminalSpeed = 3;
     public float magnitudeCap = 3f;
-
+  public  float dashSpeed = 30;
+    float dashH = 3;
+    
     public int health = 10;
-
+    private float dashCalc;
     private Rigidbody2D playerRB;
     private float acceleration;
     private bool isJumping = false;
 
+    public LayerMask groundLayer;
+    public Transform wallCheck;
+    private bool isClimbing;
+    private bool climbC;
+   public float wallSpeed = 0.5f;
+    
+    Vector2 force;
 
     // Start is called before the first frame update
     void Start()
@@ -40,6 +64,7 @@ public class PlayerController : MonoBehaviour
         playerRB = GetComponent<Rigidbody2D>();
         acceleration = maxSpeed / accelerationTime;
         jumpTime = ApexHeight / ApexTime;
+        direction = DashDirection.none;
 
     }
 
@@ -48,12 +73,23 @@ public class PlayerController : MonoBehaviour
     {
 
         previousCharacterState = currentCharacterState;
+        isClimbing = Physics2D.OverlapBox(wallCheck.position, new Vector2(2f, 0.5f), 0, groundLayer);
 
         if (IsGrounded() && Input.GetKeyDown(KeyCode.UpArrow))
         {
             isJumping = true;
         }
 
+        if (isClimbing)
+        {
+            climbC = true;
+            Debug.Log("eorking?");
+        }
+        else
+        {
+            climbC = false;
+
+        }
 
         switch (currentCharacterState)
         {
@@ -112,32 +148,84 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftArrow))
         {
             playerInput += Vector2.left;
+            direction = DashDirection.none;
+            
+            
         }
         if (Input.GetKey(KeyCode.RightArrow))
         {
             playerInput += Vector2.right;
+            direction = DashDirection.none;
         }
-        if (isJumping)
+
+        if(climbC)
         {
+            playerRB.velocity = new Vector2(playerRB.velocity.x, Mathf.Clamp(playerRB.velocity.y, wallSpeed, float.MaxValue));
+            if (Input.GetKey(KeyCode.Space))
+            {
+                 playerRB.AddForce(Vector2.up * 2f, ForceMode2D.Impulse);
+                
 
-            playerRB.AddForce(jumpTime * Vector2.up, ForceMode2D.Impulse);
-            Vector2 velocityH = playerRB.velocity;
+            }
+        }
+        
+        
+          if (isJumping){
 
-                velocityH += playerInput * jumpTime;
-            
-            playerRB.velocity = velocityH;
-            //Trigger our jump logic
-            Debug.Log("Player is jumping woohoo!!");
-            isJumping = false;
+            playerRB.velocity = Vector2.up * dashH;
+        
         }
 
-        if(playerRB.velocity.y < magnitudeCap)
-{
-            playerRB.velocity = new Vector2(playerRB.velocity.x, magnitudeCap);
+       Dash();
+
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            jump();
         }
+     
+
+        
         MovementUpdate(playerInput);
     }
 
+    private void Dash()
+    {
+
+        if (direction == DashDirection.left)
+        {
+            playerRB.velocity = Vector2.left * dashSpeed;
+        }
+
+        if (direction == DashDirection.right)
+        {
+            playerRB.velocity += Vector2.right * dashSpeed;
+
+        }
+
+        if (Input.GetKey(KeyCode.D))
+        {
+            direction = DashDirection.left;
+            playerRB.velocity = Vector2.left * dashSpeed;
+
+
+        }
+        if (Input.GetKey(KeyCode.G))
+        {
+            direction = DashDirection.right;
+            playerRB.velocity += Vector2.right * dashSpeed;
+
+        }
+
+    }
+            private void jump()
+    {
+        float y = Input.GetAxis("Vertical");
+
+        Vector2 movement = new Vector3(0.0f, y, 0.0f);
+        playerRB.velocity = movement.normalized * maxSpeed;
+
+        
+    }
 
 
     private void MovementUpdate(Vector2 playerInput)
@@ -187,6 +275,9 @@ public class PlayerController : MonoBehaviour
 
         return currentFacingDirection;
     }
+
+    
+        
 }
 
 
